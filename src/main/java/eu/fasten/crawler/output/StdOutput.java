@@ -1,8 +1,7 @@
 package eu.fasten.crawler.output;
 
-import eu.fasten.crawler.util.MavenArtifact;
+import eu.fasten.crawler.data.MavenArtifact;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class StdOutput implements Output {

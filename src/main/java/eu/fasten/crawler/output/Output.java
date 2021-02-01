@@ -1,6 +1,6 @@
 package eu.fasten.crawler.output;
 
-import eu.fasten.crawler.util.MavenArtifact;
+import eu.fasten.crawler.data.MavenArtifact;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +16,5 @@ public interface Output {
     default void send(MavenArtifact artifact) {
         send(Arrays.asList(artifact));
     }
-
     void send(List<MavenArtifact> artifact);
 }

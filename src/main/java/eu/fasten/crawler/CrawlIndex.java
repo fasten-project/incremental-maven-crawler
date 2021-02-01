@@ -2,7 +2,7 @@ package eu.fasten.crawler;
 
 import com.google.common.collect.Lists;
 import eu.fasten.crawler.output.Output;
-import eu.fasten.crawler.util.MavenArtifact;
+import eu.fasten.crawler.data.MavenArtifact;
 import org.apache.maven.index.context.IndexCreator;
 import org.apache.maven.index.context.IndexingContext;
 import org.apache.maven.index.updater.IndexDataReader;

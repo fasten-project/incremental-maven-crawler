@@ -1,23 +1,23 @@
 package eu.fasten.crawler.output;
 
-import eu.fasten.crawler.util.MavenArtifact;
+import eu.fasten.crawler.data.MavenArtifact;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class KafkaOutput implements Output {
 
-    private final String topic = "fasten.mvn.input";
+    private final String topic;
     private KafkaProducer<String, String> producer;
     private Properties properties = new Properties();
 
-    public KafkaOutput(String brokers, int batchSize) {
+    public KafkaOutput(String topic, String brokers, int batchSize) {
+        this.topic = topic;
+
         properties.put("client.id", "IncrementalMavenCrawler");
         properties.put("bootstrap.servers", brokers);
         properties.put("batch.size", String.valueOf(batchSize));
@@ -42,9 +42,10 @@ public class KafkaOutput implements Output {
 
     @Override
     public void send(List<MavenArtifact> artifact) {
-        List<ProducerRecord<String, String>> records = artifact.stream().map((x) -> {
-            return new ProducerRecord<String, String>(topic, null, x.getTimestamp(), null, x.toString());
-        }).collect(Collectors.toList());
+        List<ProducerRecord<String, String>> records = artifact
+                .stream()
+                .map((x) -> new ProducerRecord<String, String>(topic, null, x.getTimestamp(), null, x.toString()))
+                .collect(Collectors.toList());
 
         records.stream().map((r) -> producer.send(r)).parallel().forEach((f) -> {
             try {
