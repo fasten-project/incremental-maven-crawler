@@ -4,8 +4,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DownloadIndexTest {
 
@@ -23,4 +22,10 @@ public class DownloadIndexTest {
         //delete it again
         file.delete();
     }
+
+    @Test
+    public void indexDownloadFailTest() {
+         assertThrows(RuntimeException.class, () -> DownloadIndex.download(-1));
+    }
+
 }
