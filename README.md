@@ -2,7 +2,15 @@
 Add description here
 
 ## Usage
-todo
+```
+usage: IncrementalMavenCrawler
+ -bs,--batch_size <amount>             Size of batches to send to output.
+                                       Defaults to 50.
+ -i,--start_index <index>              Index to start crawling from
+                                       (inclusive).
+ -o,--output_type <[std|kafka|rest]>   Output to send the crawled
+                                       artifacts to.
+```
 
 ### Outputs
 **StdOutput**:   
