@@ -1,5 +1,6 @@
 package eu.fasten.crawler;
 
+import eu.fasten.crawler.output.KafkaOutput;
 import eu.fasten.crawler.output.Output;
 import eu.fasten.crawler.output.StdOutput;
 import org.apache.commons.cli.*;
@@ -50,7 +51,7 @@ public class IncrementalMavenCrawler implements Runnable {
             .hasArg()
             .required()
             .argName("hours")
-            .desc("Time to wait between crawl attempts (in hours).")
+            .desc("Time to wait between crawl attempts (in hours). Defaults to 1 hour.")
             .type(Integer.class)
             .build();
 
@@ -62,25 +63,52 @@ public class IncrementalMavenCrawler implements Runnable {
             .type(Integer.class)
             .build();
 
+    static Option optKafkaTopic = Option.builder("kt")
+            .longOpt("kafka_topic")
+            .hasArg()
+            .argName("topic")
+            .desc("Kafka topic to produce to.")
+            .build();
+
+    static Option optKafkaBrokers = Option.builder("kb")
+            .longOpt("kafka_brokers")
+            .hasArg()
+            .argName("brokers")
+            .desc("Kafka brokers to connect with. I.e. broker1:port,broker2:port,...")
+            .build();
+
     public static void main(String[] args) {
         options.addOption(optStartIndex);
         options.addOption(optBatchSize);
         options.addOption(optOutputType);
         options.addOption(optCrawlInterval);
         options.addOption(optCheckpointDir);
+        options.addOption(optKafkaTopic);
+        options.addOption(optKafkaBrokers);
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp( "IncrementalMavenCrawler", options );
+
+        Properties properties;
         try {
             CommandLine cmd = parser.parse(options, args);
-            verifyAndParseArguments(cmd);
+            properties = verifyAndParseArguments(cmd);
         } catch (ParseException e) {
-            e.printStackTrace();
-            System.exit(1);
+            throw new RuntimeException(e);
         }
 
-        new IncrementalMavenCrawler(679, 256, new StdOutput(), "").run();
+        Output output = new StdOutput();
+        int batchSize = Integer.parseInt(properties.getProperty("batch_size"));
+        int startIndex = Integer.parseInt(properties.getProperty("index"));
+        String checkpointDir = properties.getProperty("checkpoint_dir");
+
+        // Setup Kafka.
+        if (properties.get("output").equals("kafka")) {
+            output = new KafkaOutput(properties.getProperty("kafka_topic"), properties.getProperty("kafka_brokers"), batchSize);
+        }
+
+        new IncrementalMavenCrawler(startIndex, batchSize, output, checkpointDir).run();
 //        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 //        service.scheduleAtFixedRate(new IncrementalMavenCrawler(679), 0, 1, TimeUnit.MINUTES);
     }
@@ -88,7 +116,19 @@ public class IncrementalMavenCrawler implements Runnable {
     public static Properties verifyAndParseArguments(CommandLine cmd) throws ParseException {
         Properties props = new Properties();
 
-        props.put(cmd.getOptionValue("i"))
+        if (cmd.getOptionValue("output").equals("kafka") && !(cmd.hasOption("kafka_topic") || cmd.hasOption("kafka_brokers"))) {
+            throw new ParseException("Configured output to be Kafka, but no `kafka_topic` or `kafka_brokers` have been configured.");
+        }
+
+        props.put("index", cmd.getOptionValue("start_index", "0"));
+        props.put("batch_size", cmd.getOptionValue("batch_size", "50"));
+        props.put("output", cmd.getOptionValue("output", "std"));
+        props.put("interval", cmd.getOptionValue("interval", "1"));
+        props.put("checkpoint_dir", cmd.getOptionValue("checkpoint_dir", null));
+        props.put("kafka_topic", cmd.getOptionValue("kafka_topic", null));
+        props.put("kafka_brokers", cmd.getOptionValue("kafka_brokers", null));
+
+        return props;
     }
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -102,8 +142,11 @@ public class IncrementalMavenCrawler implements Runnable {
         this.batchSize = batchSize;
         this.output = output;
         this.checkpointDir = checkpointDir;
-        // Get index to start from
         this.index = initIndex(startIndex);
+
+        if (this.index > startIndex) {
+            logger.info("Found (checkpointed) index in " + checkpointDir + ". Will start crawling from index " + this.index);
+        }
     }
 
     public int initIndex(int startIndex) {
