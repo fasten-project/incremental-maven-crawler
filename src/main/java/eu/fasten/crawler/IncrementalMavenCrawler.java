@@ -25,7 +25,7 @@ public class IncrementalMavenCrawler implements Runnable {
             .hasArg()
             .argName("index")
             .required()
-            .desc("Index to start crawling from (inclusive).")
+            .desc("Index to start crawling from (inclusive). Required.")
             .type(Integer.class)
             .build();
 
@@ -41,7 +41,7 @@ public class IncrementalMavenCrawler implements Runnable {
             .longOpt("output")
             .hasArg()
             .argName("[std|kafka|rest]")
-            .desc("Output to send the crawled artifacts to.")
+            .desc("Output to send the crawled artifacts to. Defaults to std.")
             .type(String.class)
             .build();
 
@@ -58,7 +58,7 @@ public class IncrementalMavenCrawler implements Runnable {
             .longOpt("checkpoint_dir")
             .hasArg()
             .argName("hours")
-            .desc("Directory to checkpoint/store latest crawled index. Used for recovery on crash or restart.")
+            .desc("Directory to checkpoint/store latest crawled index. Used for recovery on crash or restart. Optional.")
             .type(Integer.class)
             .build();
 
@@ -73,7 +73,7 @@ public class IncrementalMavenCrawler implements Runnable {
             .longOpt("kafka_brokers")
             .hasArg()
             .argName("brokers")
-            .desc("Kafka brokers to connect with. I.e. broker1:port,broker2:port,...")
+            .desc("Kafka brokers to connect with. I.e. broker1:port,broker2:port,... Optional.")
             .build();
 
     public static void main(String[] args) {

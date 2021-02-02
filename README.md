@@ -5,17 +5,18 @@ Add description here
 ## Usage
 ```
 usage: IncrementalMavenCrawler
+ -i,--interval <hours>            Time to wait between crawl attempts (in
+                                  hours). Defaults to 1 hour.
+ -o,--output <[std|kafka|rest]>   Output to send the crawled artifacts to.
+                                  Defaults to std.
  -bs,--batch_size <amount>        Size of batches to send to output.
                                   Defaults to 50.
  -cd,--checkpoint_dir <hours>     Directory to checkpoint/store latest
                                   crawled index. Used for recovery on
-                                  crash or restart.
- -i,--interval <hours>            Time to wait between crawl attempts (in
-                                  hours). Defaults to 1 hour.
+                                  crash or restart. Optional.
  -kb,--kafka_brokers <brokers>    Kafka brokers to connect with. I.e.
-                                  broker1:port,broker2:port,...
+                                  broker1:port,broker2:port,... Optional.
  -kt,--kafka_topic <topic>        Kafka topic to produce to.
- -o,--output <[std|kafka|rest]>   Output to send the crawled artifacts to.
 ```
 
 ### Outputs
@@ -56,6 +57,3 @@ For example:
 ```bash
 docker run crawler --start_index 682 --output std
 ```
-
-## Influx integration
-todo
