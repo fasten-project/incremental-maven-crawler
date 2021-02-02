@@ -36,7 +36,7 @@ public class CrawlIndex {
     private List<IndexCreator> indexers;
     private IndexingContext context;
 
-    // Used to keep track of nonUnique artifacts;
+    // Used to keep track of nonUnique artifacts
     private static int nonUnique = 0;
 
     public CrawlIndex(int index, File indexFile) {
