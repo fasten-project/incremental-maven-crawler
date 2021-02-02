@@ -4,12 +4,17 @@ Add description here
 ## Usage
 ```
 usage: IncrementalMavenCrawler
- -bs,--batch_size <amount>             Size of batches to send to output.
-                                       Defaults to 50.
- -i,--start_index <index>              Index to start crawling from
-                                       (inclusive).
- -o,--output_type <[std|kafka|rest]>   Output to send the crawled
-                                       artifacts to.
+ -bs,--batch_size <amount>        Size of batches to send to output.
+                                  Defaults to 50.
+ -cd,--checkpoint_dir <hours>     Directory to checkpoint/store latest
+                                  crawled index. Used for recovery on
+                                  crash or restart.
+ -i,--interval <hours>            Time to wait between crawl attempts (in
+                                  hours). Defaults to 1 hour.
+ -kb,--kafka_brokers <brokers>    Kafka brokers to connect with. I.e.
+                                  broker1:port,broker2:port,...
+ -kt,--kafka_topic <topic>        Kafka topic to produce to.
+ -o,--output <[std|kafka|rest]>   Output to send the crawled artifacts to.
 ```
 
 ### Outputs
