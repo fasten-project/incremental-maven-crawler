@@ -35,11 +35,27 @@ An example JSON output message:
 }
 ```
 
-## Local deployment
-todo
+## Deployment
+To build the image:
+```bash
+mvn clean package
+docker build . -t crawler
+```
+Alternatively, download from GitHub Packages. This requires your token to be [installed](https://docs.github.com/en/packages/guides/configuring-docker-for-use-with-github-packages).
+```bash
+docker pull URL:latest 
+docker tag URL:latest crawler
+```
 
-## Production deployment
-todo
+To run:
+```bash
+docker run crawler [arguments]
+```
+
+For example:
+```bash
+docker run crawler --start_index 682 --output std
+```
 
 ## Influx integration
 todo

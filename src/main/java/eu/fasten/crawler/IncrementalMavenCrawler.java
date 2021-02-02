@@ -40,7 +40,6 @@ public class IncrementalMavenCrawler implements Runnable {
     static Option optOutputType = Option.builder("o")
             .longOpt("output")
             .hasArg()
-            .required()
             .argName("[std|kafka|rest]")
             .desc("Output to send the crawled artifacts to.")
             .type(String.class)
@@ -113,6 +112,12 @@ public class IncrementalMavenCrawler implements Runnable {
 //        service.scheduleAtFixedRate(new IncrementalMavenCrawler(679), 0, 1, TimeUnit.MINUTES);
     }
 
+    /**
+     * Verify and stores arguments in properties instance.
+     * @param cmd
+     * @return
+     * @throws ParseException
+     */
     public static Properties verifyAndParseArguments(CommandLine cmd) throws ParseException {
         Properties props = new Properties();
 
@@ -120,13 +125,13 @@ public class IncrementalMavenCrawler implements Runnable {
             throw new ParseException("Configured output to be Kafka, but no `kafka_topic` or `kafka_brokers` have been configured.");
         }
 
-        props.put("index", cmd.getOptionValue("start_index", "0"));
-        props.put("batch_size", cmd.getOptionValue("batch_size", "50"));
-        props.put("output", cmd.getOptionValue("output", "std"));
-        props.put("interval", cmd.getOptionValue("interval", "1"));
-        props.put("checkpoint_dir", cmd.getOptionValue("checkpoint_dir", null));
-        props.put("kafka_topic", cmd.getOptionValue("kafka_topic", null));
-        props.put("kafka_brokers", cmd.getOptionValue("kafka_brokers", null));
+        props.setProperty("index", cmd.getOptionValue("start_index", "0"));
+        props.setProperty("batch_size", cmd.getOptionValue("batch_size", "50"));
+        props.setProperty("output", cmd.getOptionValue("output", "std"));
+        props.setProperty("interval", cmd.getOptionValue("interval", "1"));
+        props.setProperty("checkpoint_dir", cmd.getOptionValue("checkpoint_dir", ""));
+        props.setProperty("kafka_topic", cmd.getOptionValue("kafka_topic", ""));
+        props.setProperty("kafka_brokers", cmd.getOptionValue("kafka_brokers", ""));
 
         return props;
     }
@@ -141,7 +146,7 @@ public class IncrementalMavenCrawler implements Runnable {
     public IncrementalMavenCrawler(int startIndex, int batchSize, Output output, String checkpointDir) {
         this.batchSize = batchSize;
         this.output = output;
-        this.checkpointDir = checkpointDir;
+        this.checkpointDir = checkpointDir.equals("") ? null : checkpointDir;
         this.index = initIndex(startIndex);
 
         if (this.index > startIndex) {
@@ -185,7 +190,7 @@ public class IncrementalMavenCrawler implements Runnable {
 
         // Setup crawler.
         CrawlIndex crawlIndex = new CrawlIndex(index, indexFile);
-        crawlIndex.crawlAndSendUnique(output, batchSize);
+        crawlIndex.crawlAndSend(output, batchSize);
 
         // Delete the index file.
         indexFile.delete();

@@ -83,31 +83,7 @@ public class CrawlIndex {
                 });
     }
 
-    // Does not support batches.
-    public void crawlAndSend(Output output) {
-        IndexDataReader.IndexDataReadVisitor visitor = (doc) -> {
-            MavenArtifact artifact = MavenArtifact.fromDocument(doc, context);
-
-            if (artifact != null) {
-                output.send(artifact);
-            } else {
-                logger.warn("Couldn't construct artifact info for document: " + doc.toString() + ". We will skip it.");
-            }
-        };
-
-        try {
-            IndexDataReader.IndexDataReadResult result = reader.readIndex(visitor, context);
-
-            logger.info("-- Finished crawling! --");
-            logger.info("Crawl date: " + result.getTimestamp().toString());
-            logger.info("Total documents: " + result.getDocumentCount());
-        } catch (IOException e) {
-            logger.error("IOException while reading from the index", e);
-            throw new RuntimeException("Now exiting due to IOExcepton.");
-        }
-    }
-
-    public void crawlAndSendUnique(Output output, int batchSize) {
+    public void crawlAndSend(Output output, int batchSize) {
         nonUnique = 0;
         Set<MavenArtifact> artifactSet = new HashSet<>();
 
