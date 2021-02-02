@@ -1,3 +1,4 @@
+[![BCH compliance](https://bettercodehub.com/edge/badge/fasten-project/incremental-maven-crawler?branch=main)](https://bettercodehub.com/) ![Java CI with Maven](https://github.com/fasten-project/incremental-maven-crawler/workflows/Java%20CI%20with%20Maven/badge.svg)
 # Incremental Maven Crawler
 Add description here
 
