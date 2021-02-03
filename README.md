@@ -54,8 +54,8 @@ docker build . -t crawler
 ```
 Alternatively, download from GitHub Packages. This requires your token to be [installed](https://docs.github.com/en/packages/guides/configuring-docker-for-use-with-github-packages).
 ```bash
-docker pull URL:latest 
-docker tag URL:latest crawler
+docker pull docker.pkg.github.com/fasten-project/incremental-maven-crawler/crawler:latest
+docker tag docker.pkg.github.com/fasten-project/incremental-maven-crawler/crawler:latest crawler
 ```
 
 To run:
