@@ -1,6 +1,7 @@
 package eu.fasten.crawler;
 
 import eu.fasten.crawler.output.StdOutput;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import scala.Int;
 
@@ -12,6 +13,11 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 public class IncrementalMavenCrawlerTest {
+
+    @BeforeClass
+    public static void beforeAll() {
+        new File("src/test/resources").mkdirs();
+    }
 
     @Test
     public void testCheckpointDisabled() {
