@@ -1,6 +1,11 @@
 [![BCH compliance](https://bettercodehub.com/edge/badge/fasten-project/incremental-maven-crawler?branch=main)](https://bettercodehub.com/) ![Java CI with Maven](https://github.com/fasten-project/incremental-maven-crawler/workflows/Java%20CI%20with%20Maven/badge.svg)
 # Incremental Maven Crawler
-Add description here
+This application crawls from [Maven Central Incremental Index Repository](https://repo1.maven.org/maven2/.index/) with a certain interval. 
+Running this application will follow this repository and outputs the __unique artifacts__ released on Maven central.
+Currently, Maven Central releases a new (incremental) index __every week__. 
+
+Several outputs exist including Kafka. REST API support will be added soon. Moreover, a checkpointing mechanism is added to support persistence across restarts.
+More specifically, the `checkpointDir` stores an `INDEX.index` file where the `INDEX` is the _next_ index to crawl. E.g. when `800.index` is stored, the crawler will start crawling _including_ index 800.
 
 ## Usage
 ```
@@ -20,21 +25,26 @@ usage: IncrementalMavenCrawler
 ```
 
 ### Outputs
-**StdOutput**:   
-Outputs to the console using `System.out.println` in a JSON format.
-
-**KafkaOutput**:  
-Outputs to a Kafka topic. Requires arguments: `--output kafka`, `--kafka_topic TOPIC`, `--kafka_brokers BROKER1,BROKER2`.
 An example JSON output message:
 ```json
 {
    "artifactId":"config",
    "groupId":"software.amazon.awssdk",
    "version":"2.15.58",
-   "timestamp":1609791717000,
+   "date":1609791717000,
    "artifactRepository":"https://repo.maven.apache.org/maven2/"
 }
 ```
+
+**StdOutput**:   
+Outputs to the console using `System.out.println` in a JSON format.
+
+**KafkaOutput**:  
+Outputs to a Kafka topic.  
+Requires the arguments: 
+- `--output kafka`; switch output mode to kafka
+- `--kafka_topic TOPIC`; the kafka topic to send to.
+`--kafka_brokers BROKER1,BROKER2`; the brokers to connect to.
 
 ## Deployment
 To build the image:

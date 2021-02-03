@@ -11,10 +11,18 @@ import java.util.stream.Collectors;
 
 public class KafkaOutput implements Output {
 
+    // Kafka connection data.
     private final String topic;
     private KafkaProducer<String, String> producer;
     private Properties properties = new Properties();
 
+    /**
+     * Outputs to a Kafka topic.
+     *
+     * @param topic the topic to send to.
+     * @param brokers the brokers to connect with.
+     * @param batchSize the size of the batches to send.
+     */
     public KafkaOutput(String topic, String brokers, int batchSize) {
         this.topic = topic;
 
@@ -40,6 +48,10 @@ public class KafkaOutput implements Output {
         producer.flush();
     }
 
+    /**
+     * Sends a batch of artifacts to Kafka.
+     * @param artifact the artifacts (we expect it to be of size batch size).
+     */
     @Override
     public void send(List<MavenArtifact> artifact) {
         List<ProducerRecord<String, String>> records = artifact
