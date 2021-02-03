@@ -86,8 +86,6 @@ public class IncrementalMavenCrawler implements Runnable {
         options.addOption(optKafkaBrokers);
 
         CommandLineParser parser = new DefaultParser();
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "IncrementalMavenCrawler", options );
 
         Properties properties;
         try {
@@ -97,9 +95,11 @@ public class IncrementalMavenCrawler implements Runnable {
             throw new RuntimeException(e);
         }
 
+        // Setup arguments for crawler.
         Output output = new StdOutput();
         int batchSize = Integer.parseInt(properties.getProperty("batch_size"));
         int startIndex = Integer.parseInt(properties.getProperty("index"));
+        int interval = Integer.parseInt(properties.getProperty("interval"));
         String checkpointDir = properties.getProperty("checkpoint_dir");
 
         // Setup Kafka.
@@ -107,16 +107,17 @@ public class IncrementalMavenCrawler implements Runnable {
             output = new KafkaOutput(properties.getProperty("kafka_topic"), properties.getProperty("kafka_brokers"), batchSize);
         }
 
-        new IncrementalMavenCrawler(startIndex, batchSize, output, checkpointDir).run();
-//        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-//        service.scheduleAtFixedRate(new IncrementalMavenCrawler(679), 0, 1, TimeUnit.MINUTES);
+        // Start cralwer and execute it with an interval.
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(startIndex, batchSize, output, checkpointDir);
+        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        service.scheduleAtFixedRate(crawler, 0, interval, TimeUnit.HOURS);
     }
 
     /**
      * Verify and stores arguments in properties instance.
-     * @param cmd
-     * @return
-     * @throws ParseException
+     * @param cmd the parsed command line arguments.
+     * @return verified arguments.
+     * @throws ParseException when something goes wrong.
      */
     public static Properties verifyAndParseArguments(CommandLine cmd) throws ParseException {
         Properties props = new Properties();
@@ -138,11 +139,21 @@ public class IncrementalMavenCrawler implements Runnable {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    // Crawler related settings.
     private int index;
     private String checkpointDir;
     private int batchSize;
     private Output output;
 
+    /**
+     * Crawls the incremental index from Maven (incrementally).
+     * Checkpointing is used to persist up until which index we crawled (the stored index is _not_ inclusive).
+     *
+     * @param startIndex the index to start crawling from. If a higher index is found in the checkpoint dir, we use that as startIndex.
+     * @param batchSize the size of the batches to send to the output.
+     * @param output the output to send the (unique) crawled artifacts to. Currently we support Std and Kafka.
+     * @param checkpointDir the checkpoint directory to persist indexes. Make sure this directory is persistent across restarts.
+     */
     public IncrementalMavenCrawler(int startIndex, int batchSize, Output output, String checkpointDir) {
         this.batchSize = batchSize;
         this.output = output;
@@ -154,6 +165,13 @@ public class IncrementalMavenCrawler implements Runnable {
         }
     }
 
+    /**
+     * Initialize the index by checking the checkpoint directory.
+     * The highest checkpoint is picked.
+     *
+     * @param startIndex the index to start from.
+     * @return the actual startIndex.
+     */
     public int initIndex(int startIndex) {
         if (this.checkpointDir == null) {
             return startIndex;
@@ -175,6 +193,9 @@ public class IncrementalMavenCrawler implements Runnable {
         return Math.max(startIndex, highestStoredIndex);
     }
 
+    /**
+     * This method is called every x hours and crawls the (new) index if it exists.
+     */
     public void run() {
         if (!DownloadIndex.indexExists(index)) {
             logger.info("Attempting to download index " + index + ", but it doesn't exist yet.");
@@ -201,6 +222,10 @@ public class IncrementalMavenCrawler implements Runnable {
         updateIndex();
     }
 
+    /**
+     * Updates the index by incrementing it.
+     * Also stores the (new) index in the checkpoint directory (if it is enabled).
+     */
     public void updateIndex() {
         this.index += 1;
 
@@ -222,6 +247,10 @@ public class IncrementalMavenCrawler implements Runnable {
         }
     }
 
+    /**
+     * Returns the index.
+     * @return the current index.
+     */
     public int getIndex() {
         return this.index;
     }

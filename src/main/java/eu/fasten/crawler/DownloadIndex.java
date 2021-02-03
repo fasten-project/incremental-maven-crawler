@@ -15,6 +15,11 @@ public class DownloadIndex {
     private static Logger logger = LoggerFactory.getLogger(DownloadIndex.class);
     private static final String BASE_URL = "https://repo1.maven.org/maven2/.index/nexus-maven-repository-index.";
 
+    /**
+     * Verify if an (incremental) index exists on Maven Central.
+     * @param index index to check.
+     * @return whether an index is on Maven central (or not).
+     */
     public static boolean indexExists(int index) {
         try {
             URL url = new URL(BASE_URL + index + ".gz");
@@ -29,6 +34,11 @@ public class DownloadIndex {
         return false;
     }
 
+    /**
+     * Downloads a Maven index in the `/tmp` folder.
+     * @param index the index to download.
+     * @return the downloaded file.
+     */
     public static File download(int index) {
         try {
             File tempFile = File.createTempFile("nexus-maven-repository-index.", index + ".gz");
