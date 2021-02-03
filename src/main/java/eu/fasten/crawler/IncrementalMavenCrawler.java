@@ -215,11 +215,15 @@ public class IncrementalMavenCrawler implements Runnable {
 
             // Create checkpoint file.
             File checkpointFile = new File(checkpointDir + this.index + ".index");
-            checkpointFile.mkdirs();
+            checkpointFile.getParentFile().mkdirs();
             checkpointFile.createNewFile();
         } catch (IOException e) {
-            logger.error("Failed checkpointing index " + index + ".", e);
+            logger.error("Failed checkpointing index " + this.index + ".", e);
         }
+    }
+
+    public int getIndex() {
+        return this.index;
     }
 
 }
