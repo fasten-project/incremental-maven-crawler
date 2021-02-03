@@ -11,6 +11,7 @@ import java.util.Objects;
 
 public class MavenArtifact {
 
+    // Mapper to create JSON objects.
     private static ObjectMapper mapper = new ObjectMapper();
 
     // Unique identifier of a Maven artifact.
@@ -18,10 +19,18 @@ public class MavenArtifact {
     private final String groupId;
     private final String version;
     private final String repositoryUrl;
+
     private final Long timestamp;
 
-    private static final String SEPARATOR = ":";
 
+    /**
+     * Creates new MavenArtifact.
+     *
+     * @param artifactId the artifact id of the release.
+     * @param groupId the group id of the release.
+     * @param version the version of the release.
+     * @param timestamp the `last-modified` field from the release.
+     */
     public MavenArtifact(String artifactId, String groupId, String version, Long timestamp) {
         this.artifactId = artifactId;
         this.groupId = groupId;
@@ -30,36 +39,46 @@ public class MavenArtifact {
         this.repositoryUrl = "https://repo.maven.apache.org/maven2/";
     }
 
+    /**
+     * Field getters.
+     */
     public String getArtifactId() {
         return artifactId;
     }
-
     public String getGroupId() {
         return groupId;
     }
-
     public String getVersion() {
         return version;
     }
-
     public String getRepositoryUrl() {
         return repositoryUrl;
     }
-
     public Long getTimestamp () {
         return timestamp;
     }
 
+    /**
+     * Converts MavenArtifact to JSON string.
+     * @return stringified version of the release.
+     */
     public String toString() {
         ObjectNode node = mapper.createObjectNode();
         node.put("artifactId", this.getArtifactId());
         node.put("groupId", this.getGroupId());
         node.put("version", this.getVersion());
-        node.put("timestamp", this.getTimestamp());
+        node.put("date", this.getTimestamp());
         node.put("artifactRepository", this.getRepositoryUrl());
         return node.toString();
     }
 
+    /**
+     * Converts from a Lucene document to a MavenArtifact.
+     *
+     * @param document the document to read from.
+     * @param context to build the artifact info.
+     * @return a MavenArtifact.
+     */
     public static MavenArtifact fromDocument(Document document, IndexingContext context) {
         ArtifactInfo ai = IndexUtils.constructArtifactInfo(document, context);
 
