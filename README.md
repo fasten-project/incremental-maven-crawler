@@ -4,7 +4,7 @@ This application crawls from [Maven Central Incremental Index Repository](https:
 Running this application will follow this repository and outputs the __unique artifacts__ released on Maven central.
 Currently, Maven Central releases a new (incremental) index __every week__. 
 
-Several outputs exist including Kafka. REST API support will be added soon. Moreover, a checkpointing mechanism is added to support persistence across restarts.
+Several outputs exist including Kafka and HTTP support. Moreover, a checkpointing mechanism is added to support persistence across restarts.
 More specifically, the `checkpointDir` stores an `INDEX.index` file where the `INDEX` is the _next_ index to crawl. E.g. when `800.index` is stored, the crawler will start crawling _including_ index 800.
 
 ## Usage
@@ -20,8 +20,13 @@ usage: IncrementalMavenCrawler
                                   crawled index. Used for recovery on
                                   crash or restart. Optional.
  -kb,--kafka_brokers <brokers>    Kafka brokers to connect with. I.e.
-                                  broker1:port,broker2:port,... Optional.
+                                  broker1:port,broker2:port,...
+                                  Required for Kafka output.
  -kt,--kafka_topic <topic>        Kafka topic to produce to.
+                                  Required for Kafka output.
+ -re,--rest_endpoint <url>        HTTP endpoint to post crawled batches to.
+                                  Required for Rest output.
+
 ```
 
 ### Outputs

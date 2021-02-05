@@ -1,8 +1,6 @@
 package eu.fasten.crawler;
 
-import eu.fasten.crawler.output.KafkaOutput;
-import eu.fasten.crawler.output.Output;
-import eu.fasten.crawler.output.StdOutput;
+import eu.fasten.crawler.output.*;
 import org.apache.commons.cli.*;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
@@ -76,15 +74,15 @@ public class IncrementalMavenCrawler implements Runnable {
             .desc("Kafka brokers to connect with. I.e. broker1:port,broker2:port,... Optional.")
             .build();
 
-    public static void main(String[] args) {
-        options.addOption(optStartIndex);
-        options.addOption(optBatchSize);
-        options.addOption(optOutputType);
-        options.addOption(optCrawlInterval);
-        options.addOption(optCheckpointDir);
-        options.addOption(optKafkaTopic);
-        options.addOption(optKafkaBrokers);
+    static Option optRestEndpoint = Option.builder("re")
+            .longOpt("rest_endpoint")
+            .hasArg()
+            .argName("url")
+            .desc("HTTP endpoint to post crawled batches to.")
+            .build();
 
+    public static void main(String[] args) {
+        addOptions();
         CommandLineParser parser = new DefaultParser();
 
         Properties properties;
@@ -96,21 +94,27 @@ public class IncrementalMavenCrawler implements Runnable {
         }
 
         // Setup arguments for crawler.
-        Output output = new StdOutput();
         int batchSize = Integer.parseInt(properties.getProperty("batch_size"));
         int startIndex = Integer.parseInt(properties.getProperty("index"));
         int interval = Integer.parseInt(properties.getProperty("interval"));
         String checkpointDir = properties.getProperty("checkpoint_dir");
-
-        // Setup Kafka.
-        if (properties.get("output").equals("kafka")) {
-            output = new KafkaOutput(properties.getProperty("kafka_topic"), properties.getProperty("kafka_brokers"), batchSize);
-        }
+        Output output = OutputFactory.getOutput(properties.getProperty("output"), properties);
 
         // Start cralwer and execute it with an interval.
         IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(startIndex, batchSize, output, checkpointDir);
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleAtFixedRate(crawler, 0, interval, TimeUnit.HOURS);
+    }
+
+    public static void addOptions() {
+        options.addOption(optStartIndex);
+        options.addOption(optBatchSize);
+        options.addOption(optOutputType);
+        options.addOption(optCrawlInterval);
+        options.addOption(optCheckpointDir);
+        options.addOption(optKafkaTopic);
+        options.addOption(optKafkaBrokers);
+        options.addOption(optRestEndpoint);
     }
 
     /**
@@ -126,6 +130,10 @@ public class IncrementalMavenCrawler implements Runnable {
             throw new ParseException("Configured output to be Kafka, but no `kafka_topic` or `kafka_brokers` have been configured.");
         }
 
+        if (cmd.getOptionValue("output").equals("rest") && !(cmd.hasOption("rest_endpoint"))) {
+            throw new ParseException("Configured output to be Rest, but no `rest_endpoint` has been configured.");
+        }
+
         props.setProperty("index", cmd.getOptionValue("start_index", "0"));
         props.setProperty("batch_size", cmd.getOptionValue("batch_size", "50"));
         props.setProperty("output", cmd.getOptionValue("output", "std"));
@@ -133,6 +141,7 @@ public class IncrementalMavenCrawler implements Runnable {
         props.setProperty("checkpoint_dir", cmd.getOptionValue("checkpoint_dir", ""));
         props.setProperty("kafka_topic", cmd.getOptionValue("kafka_topic", ""));
         props.setProperty("kafka_brokers", cmd.getOptionValue("kafka_brokers", ""));
+        props.setProperty("rest_endpoint", cmd.getOptionValue("rest_endpoint", ""));
 
         return props;
     }
@@ -163,6 +172,8 @@ public class IncrementalMavenCrawler implements Runnable {
         if (this.index > startIndex) {
             logger.info("Found (checkpointed) index in " + checkpointDir + ". Will start crawling from index " + this.index);
         }
+
+        logger.info("Starting IncrementalMavenCrawler with index: " + this.index + ", batch size: " + batchSize + " and output " + output.getClass().getSimpleName() + ".");
     }
 
     /**
@@ -211,15 +222,18 @@ public class IncrementalMavenCrawler implements Runnable {
 
         // Setup crawler.
         CrawlIndex crawlIndex = new CrawlIndex(index, indexFile);
-        crawlIndex.crawlAndSend(output, batchSize);
+        boolean success = crawlIndex.crawlAndSend(output, batchSize);
 
         // Delete the index file.
         indexFile.delete();
 
-        logger.info("Index " + index + " successfully crawled.");
-
-        // Update (and increment) the index.
-        updateIndex();
+        if (success) {
+            logger.info("Index " + index + " successfully crawled.");
+            // Update (and increment) the index.
+            updateIndex();
+        } else {
+            logger.warn("Failed crawling index " + index + ". Will retry on next interval.");
+        }
     }
 
     /**
