@@ -101,24 +101,12 @@ public class CrawlIndex {
      */
     public boolean crawlAndSend(Output output, int batchSize) {
         nonUnique = 0;
-        Set<MavenArtifact> artifactSet = new HashSet<>();
+        HashSet<MavenArtifact> artifactSet = new HashSet<>();
 
         // Setup output.
         output.open();
 
-        IndexDataReader.IndexDataReadVisitor visitor = (doc) -> {
-            MavenArtifact artifact = MavenArtifact.fromDocument(doc, context);
-            if (artifact == null) {
-                logger.warn("Couldn't construct artifact info for document: " + doc.toString() + ". We will skip it.");
-                return;
-            }
-
-            if (artifactSet.contains(artifact)) {
-                nonUnique += 1;
-            } else {
-                artifactSet.add(artifact);
-            }
-        };
+        IndexDataReader.IndexDataReadVisitor visitor = setupUniqueVisitor(artifactSet);
 
         try {
             IndexDataReader.IndexDataReadResult result = reader.readIndex(visitor, context);
@@ -151,6 +139,24 @@ public class CrawlIndex {
         }
 
         return true;
+    }
+    
+    public IndexDataReader.IndexDataReadVisitor setupUniqueVisitor(HashSet<MavenArtifact> artifactSet) {
+        IndexDataReader.IndexDataReadVisitor visitor = (doc) -> {
+            MavenArtifact artifact = MavenArtifact.fromDocument(doc, context);
+            if (artifact == null) {
+                logger.warn("Couldn't construct artifact info for document: " + doc.toString() + ". We will skip it.");
+                return;
+            }
+
+            if (artifactSet.contains(artifact)) {
+                nonUnique += 1;
+            } else {
+                artifactSet.add(artifact);
+            }
+        };
+
+        return visitor;
     }
 
 }
