@@ -138,8 +138,7 @@ public class IncrementalMavenCrawlerTest {
 
         IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 50, stdOutput, "src/test/resources/");
 
-        doNothing().when(stdOutput).send(anyList());
-
+        when(stdOutput.send(anyList())).thenReturn(true);
         crawler.run();
 
         assertTrue(new File("src/test/resources/" + (index + 1) + ".index").exists());

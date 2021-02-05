@@ -16,7 +16,7 @@ public class RestOutput implements Output {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String endpoint;
-    
+
     public RestOutput(String endpoint) {
         this.endpoint = endpoint;
     }
