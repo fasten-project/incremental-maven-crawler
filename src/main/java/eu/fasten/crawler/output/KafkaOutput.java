@@ -53,20 +53,25 @@ public class KafkaOutput implements Output {
      * @param artifact the artifacts (we expect it to be of size batch size).
      */
     @Override
-    public void send(List<MavenArtifact> artifact) {
+    public boolean send(List<MavenArtifact> artifact) {
         List<ProducerRecord<String, String>> records = artifact
                 .stream()
                 .map((x) -> new ProducerRecord<String, String>(topic, null, x.getTimestamp(), null, x.toString()))
                 .collect(Collectors.toList());
 
-        records.stream().map((r) -> producer.send(r)).parallel().forEach((f) -> {
+        boolean result = records.stream().map((r) -> producer.send(r)).parallel().map((f) -> {
             try {
                 f.get();
+                return true;
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                return false;
             } catch (ExecutionException e) {
                 e.printStackTrace();
+                return false;
             }
-        });
+        }).reduce(true, (x, y) -> x && y);
+
+        return result;
     }
 }

@@ -211,15 +211,18 @@ public class IncrementalMavenCrawler implements Runnable {
 
         // Setup crawler.
         CrawlIndex crawlIndex = new CrawlIndex(index, indexFile);
-        crawlIndex.crawlAndSend(output, batchSize);
+        boolean success = crawlIndex.crawlAndSend(output, batchSize);
 
         // Delete the index file.
         indexFile.delete();
 
-        logger.info("Index " + index + " successfully crawled.");
-
-        // Update (and increment) the index.
-        updateIndex();
+        if (success) {
+            logger.info("Index " + index + " successfully crawled.");
+            // Update (and increment) the index.
+            updateIndex();
+        } else {
+            logger.warn("Failed crawling index " + index + ". Will retry on next interval.");
+        }
     }
 
     /**

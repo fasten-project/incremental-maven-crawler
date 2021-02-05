@@ -8,13 +8,13 @@ import java.util.List;
 public interface Output {
 
     /** Helper methods for constructing and cleaning up the output instance. **/
-    void open();
-    void close();
-    void flush();
+    default void open() {}
+    default void close() {}
+    default void flush() {}
 
     /** Send records to output. **/
-    default void send(MavenArtifact artifact) {
-        send(Arrays.asList(artifact));
+    default boolean send(MavenArtifact artifact) {
+        return send(Arrays.asList(artifact));
     }
-    void send(List<MavenArtifact> artifact);
+    boolean send(List<MavenArtifact> artifact);
 }

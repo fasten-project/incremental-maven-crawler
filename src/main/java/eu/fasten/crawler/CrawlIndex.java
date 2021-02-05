@@ -99,7 +99,7 @@ public class CrawlIndex {
      * @param output the class to output to (E.g. Kafka).
      * @param batchSize the batch size to send to the output.
      */
-    public void crawlAndSend(Output output, int batchSize) {
+    public boolean crawlAndSend(Output output, int batchSize) {
         nonUnique = 0;
         Set<MavenArtifact> artifactSet = new HashSet<>();
 
@@ -125,7 +125,14 @@ public class CrawlIndex {
 
             // Send to output.
             final List<List<MavenArtifact>> batchedLists = Lists.partition(Lists.newArrayList(artifactSet), batchSize);
-            batchedLists.forEach((l) -> output.send(l));
+            for (List<MavenArtifact> artifacts : batchedLists) {
+                boolean res = output.send(artifacts);
+
+                if (!res) {
+                    logger.error("Failed sending batch to ouput for index " + index  + ". Exiting current crawl session.");
+                    return false;
+                }
+            }
 
             // Flush and close output.
             output.flush();
@@ -137,11 +144,13 @@ public class CrawlIndex {
             logger.info("Unique documents: " + artifactSet.size());
             logger.info("Total documents: " + result.getDocumentCount());
         } catch (IOException e) {
-            logger.error("IOException while reading from the index", e);
-            throw new RuntimeException("Now exiting due to IOExcepton.");
+            logger.error("IOException while reading from the index. " + index + ". Exiting current crawl session.", e);
+            return false;
         } finally {
             nonUnique = 0;
         }
+
+        return true;
     }
 
 }
