@@ -22,7 +22,7 @@ public class IncrementalMavenCrawlerTest {
     @Test
     public void testCheckpointDisabled() {
         int index = 0;
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "");
         assertEquals(index, crawler.getIndex());
     }
 
@@ -34,7 +34,7 @@ public class IncrementalMavenCrawlerTest {
         file.mkdirs();
         file.createNewFile();
 
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "src/test/resources/");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "src/test/resources/");
         assertEquals(index, crawler.getIndex());
         file.delete();
     }
@@ -47,7 +47,7 @@ public class IncrementalMavenCrawlerTest {
         file.mkdirs();
         file.createNewFile();
 
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "src/test/resources/");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "src/test/resources/");
         assertNotEquals(index, crawler.getIndex());
         assertEquals(1, crawler.getIndex());
         file.delete();
@@ -65,7 +65,7 @@ public class IncrementalMavenCrawlerTest {
         file2.mkdirs();
         file2.createNewFile();
 
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "src/test/resources/");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "src/test/resources/");
         assertNotEquals(index, crawler.getIndex());
         assertEquals(5, crawler.getIndex());
 
@@ -79,7 +79,7 @@ public class IncrementalMavenCrawlerTest {
 
         File file = new File("src/test/resources/1.index");
 
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "");
         crawler.updateIndex();
 
         assertFalse(file.exists());
@@ -91,7 +91,7 @@ public class IncrementalMavenCrawlerTest {
         int index = 0;
 
 
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "src/test/resources/");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "src/test/resources/");
         crawler.updateIndex();
 
         File file = new File("src/test/resources/1.index");
@@ -113,7 +113,7 @@ public class IncrementalMavenCrawlerTest {
         file2.mkdirs();
         file2.createNewFile();
 
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "src/test/resources/");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "src/test/resources/");
         crawler.updateIndex();
         assertFalse(file.exists());
         assertFalse(file2.exists());
@@ -126,7 +126,7 @@ public class IncrementalMavenCrawlerTest {
     @Test
     public void testNonExistentIndex() {
         int index = 9999999;
-        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, null, "src/test/resources/");
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 0, new StdOutput(), "src/test/resources/");
         crawler.run();
         assertEquals(index, crawler.getIndex());
     }
