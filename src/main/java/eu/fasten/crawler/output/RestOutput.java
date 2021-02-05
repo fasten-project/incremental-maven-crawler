@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RestOutput implements Output {
 
@@ -35,7 +36,7 @@ public class RestOutput implements Output {
 
         try {
             // Send batch.
-            StringEntity jsonList = new StringEntity(buildJsonList(artifacts));
+            StringEntity jsonList = new StringEntity(buildJsonList(artifacts.stream().map((x) -> x.toString()).collect(Collectors.toList())));
             httpPost.setEntity(jsonList);
             int responseCode = httpClient.execute(httpPost).getStatusLine().getStatusCode();
 
@@ -54,16 +55,16 @@ public class RestOutput implements Output {
 
     /**
      * Builds a json list of all artifacts.
-     * @param artifacts all artifacts.
+     * @param artifactStrings all artifacts.
      * @return a stringified list of all artifacts.
      */
-    public String buildJsonList(List<MavenArtifact> artifacts) {
+    public String buildJsonList(List<String> artifactStrings) {
         // Build array of JSON objects.
         StringBuffer json = new StringBuffer();
         json.append("[");
 
-        for (MavenArtifact af : artifacts) {
-            json.append(af.toString() + ",");
+        for (String af : artifactStrings) {
+            json.append(af + ",");
         }
 
         json.deleteCharAt(json.length() - 1);
