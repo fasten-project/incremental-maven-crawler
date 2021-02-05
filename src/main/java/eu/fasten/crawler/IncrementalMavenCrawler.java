@@ -1,9 +1,6 @@
 package eu.fasten.crawler;
 
-import eu.fasten.crawler.output.KafkaOutput;
-import eu.fasten.crawler.output.Output;
-import eu.fasten.crawler.output.RestOutput;
-import eu.fasten.crawler.output.StdOutput;
+import eu.fasten.crawler.output.*;
 import org.apache.commons.cli.*;
 import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
@@ -97,18 +94,11 @@ public class IncrementalMavenCrawler implements Runnable {
         }
 
         // Setup arguments for crawler.
-        Output output = new StdOutput();
         int batchSize = Integer.parseInt(properties.getProperty("batch_size"));
         int startIndex = Integer.parseInt(properties.getProperty("index"));
         int interval = Integer.parseInt(properties.getProperty("interval"));
         String checkpointDir = properties.getProperty("checkpoint_dir");
-
-        // Setup Kafka.
-        if (properties.get("output").equals("kafka")) {
-            output = new KafkaOutput(properties.getProperty("kafka_topic"), properties.getProperty("kafka_brokers"), batchSize);
-        } else if (properties.get("output").equals("rest")) {
-            output = new RestOutput(properties.getProperty("rest_endpoint"));
-        }
+        Output output = OutputFactory.getOutput(properties.getProperty("output"), properties);
 
         // Start cralwer and execute it with an interval.
         IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(startIndex, batchSize, output, checkpointDir);
