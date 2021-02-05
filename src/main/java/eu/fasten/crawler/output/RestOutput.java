@@ -28,27 +28,14 @@ public class RestOutput implements Output {
     }
 
     @Override
-    public boolean send(List<MavenArtifact> artifact) {
+    public boolean send(List<MavenArtifact> artifacts) {
         // Setup connections.
-        HttpClient httpClient = HttpClients.createDefault();
+        HttpClient httpClient = constructHttpClient();
         HttpPost httpPost = constructPostRequest();
-
-
-        // Build array of JSON objects.
-        StringBuffer json = new StringBuffer();
-        json.append("[");
-
-        for (MavenArtifact af : artifact) {
-            json.append(af.toString() + ",");
-        }
-
-        json.deleteCharAt(json.length() - 1);
-        json.append("]");
-
 
         try {
             // Send batch.
-            StringEntity jsonList = new StringEntity(json.toString());
+            StringEntity jsonList = new StringEntity(buildJsonList(artifacts));
             httpPost.setEntity(jsonList);
             int responseCode = httpClient.execute(httpPost).getStatusLine().getStatusCode();
 
@@ -56,7 +43,7 @@ public class RestOutput implements Output {
             if (responseCode == 200) {
                 return true;
             } else {
-                logger.warn("Expected response 200, but got " + responseCode);
+                logger.error("Expected response 200, but got " + responseCode);
                 return false;
             }
         } catch (IOException e) {
@@ -66,10 +53,38 @@ public class RestOutput implements Output {
     }
 
     /**
+     * Builds a json list of all artifacts.
+     * @param artifacts all artifacts.
+     * @return a stringified list of all artifacts.
+     */
+    public String buildJsonList(List<MavenArtifact> artifacts) {
+        // Build array of JSON objects.
+        StringBuffer json = new StringBuffer();
+        json.append("[");
+
+        for (MavenArtifact af : artifacts) {
+            json.append(af.toString() + ",");
+        }
+
+        json.deleteCharAt(json.length() - 1);
+        json.append("]");
+
+        return json.toString();
+    }
+
+    /**
      * Constructs a PostRequest.
      * @return a HTTPPost.
      */
     public HttpPost constructPostRequest() {
         return new HttpPost(this.endpoint);
+    }
+
+    /**
+     * Constructs a HTTPClient.
+     * @return a HttpClient.
+     */
+    public HttpClient constructHttpClient() {
+        return HttpClients.createDefault();
     }
 }

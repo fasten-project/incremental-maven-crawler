@@ -2,6 +2,7 @@ package eu.fasten.crawler;
 
 import eu.fasten.crawler.output.KafkaOutput;
 import eu.fasten.crawler.output.Output;
+import eu.fasten.crawler.output.RestOutput;
 import eu.fasten.crawler.output.StdOutput;
 import org.apache.commons.cli.*;
 import org.codehaus.plexus.util.FileUtils;
@@ -76,6 +77,13 @@ public class IncrementalMavenCrawler implements Runnable {
             .desc("Kafka brokers to connect with. I.e. broker1:port,broker2:port,... Optional.")
             .build();
 
+    static Option optRestEndpoint = Option.builder("re")
+            .longOpt("rest_endpoint")
+            .hasArg()
+            .argName("url")
+            .desc("HTTP endpoint to post crawled batches to.")
+            .build();
+
     public static void main(String[] args) {
         options.addOption(optStartIndex);
         options.addOption(optBatchSize);
@@ -84,6 +92,7 @@ public class IncrementalMavenCrawler implements Runnable {
         options.addOption(optCheckpointDir);
         options.addOption(optKafkaTopic);
         options.addOption(optKafkaBrokers);
+        options.addOption(optRestEndpoint);
 
         CommandLineParser parser = new DefaultParser();
 
@@ -105,6 +114,8 @@ public class IncrementalMavenCrawler implements Runnable {
         // Setup Kafka.
         if (properties.get("output").equals("kafka")) {
             output = new KafkaOutput(properties.getProperty("kafka_topic"), properties.getProperty("kafka_brokers"), batchSize);
+        } else if (properties.get("output").equals("rest")) {
+            output = new RestOutput(properties.getProperty("rest_endpoint"));
         }
 
         // Start cralwer and execute it with an interval.
@@ -126,6 +137,10 @@ public class IncrementalMavenCrawler implements Runnable {
             throw new ParseException("Configured output to be Kafka, but no `kafka_topic` or `kafka_brokers` have been configured.");
         }
 
+        if (cmd.getOptionValue("output").equals("rest") && !(cmd.hasOption("rest_endpoint"))) {
+            throw new ParseException("Configured output to be Rest, but no `rest_endpoint` has been configured.");
+        }
+
         props.setProperty("index", cmd.getOptionValue("start_index", "0"));
         props.setProperty("batch_size", cmd.getOptionValue("batch_size", "50"));
         props.setProperty("output", cmd.getOptionValue("output", "std"));
@@ -133,6 +148,7 @@ public class IncrementalMavenCrawler implements Runnable {
         props.setProperty("checkpoint_dir", cmd.getOptionValue("checkpoint_dir", ""));
         props.setProperty("kafka_topic", cmd.getOptionValue("kafka_topic", ""));
         props.setProperty("kafka_brokers", cmd.getOptionValue("kafka_brokers", ""));
+        props.setProperty("rest_endpoint", cmd.getOptionValue("rest_endpoint", ""));
 
         return props;
     }
@@ -163,6 +179,8 @@ public class IncrementalMavenCrawler implements Runnable {
         if (this.index > startIndex) {
             logger.info("Found (checkpointed) index in " + checkpointDir + ". Will start crawling from index " + this.index);
         }
+
+        logger.info("Starting IncrementalMavenCrawler with index: " + this.index + ", batch size: " + batchSize + " and output " + output.getClass().getSimpleName() + ".");
     }
 
     /**

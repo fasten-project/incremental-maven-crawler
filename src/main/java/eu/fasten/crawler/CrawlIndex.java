@@ -140,7 +140,12 @@ public class CrawlIndex {
 
         return true;
     }
-    
+
+    /**
+     * Setup DataReadVisitor which fills a set with unique artifacts.
+     * @param artifactSet reference to the set which will be filled with unique artifacts.
+     * @return the visitor.
+     */
     public IndexDataReader.IndexDataReadVisitor setupUniqueVisitor(HashSet<MavenArtifact> artifactSet) {
         IndexDataReader.IndexDataReadVisitor visitor = (doc) -> {
             MavenArtifact artifact = MavenArtifact.fromDocument(doc, context);

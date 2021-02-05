@@ -20,8 +20,13 @@ usage: IncrementalMavenCrawler
                                   crawled index. Used for recovery on
                                   crash or restart. Optional.
  -kb,--kafka_brokers <brokers>    Kafka brokers to connect with. I.e.
-                                  broker1:port,broker2:port,... Optional.
+                                  broker1:port,broker2:port,...
+                                  Required for Kafka output.
  -kt,--kafka_topic <topic>        Kafka topic to produce to.
+                                  Required for Kafka output.
+ -re,--rest_endpoint <url>        HTTP endpoint to post crawled batches to.
+                                  Required for Rest output.
+
 ```
 
 ### Outputs
