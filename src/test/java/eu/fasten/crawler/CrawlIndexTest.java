@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
@@ -38,11 +38,29 @@ public class CrawlIndexTest {
         CrawlIndex index = new CrawlIndex(600, f);
         StdOutput mockStd = mock(StdOutput.class);
 
-        index.crawlAndSend(mockStd, 50);
+        when(mockStd.send(anyList())).thenReturn(true);
+
+        boolean res = index.crawlAndSend(mockStd, 50);
 
         verify(mockStd, atLeastOnce()).send(anyList());
+        assertTrue(res);
         f.delete();
     }
+
+    @Test
+    public void testIndexSetupFullRunFailure() {
+        File f = DownloadIndex.download(600);
+        CrawlIndex index = new CrawlIndex(600, f);
+        StdOutput mockStd = mock(StdOutput.class);
+
+        when(mockStd.send(anyList())).thenReturn(false);
+        boolean res = index.crawlAndSend(mockStd, 50);
+
+        verify(mockStd, atLeastOnce()).send(anyList());
+        assertFalse(res);
+        f.delete();
+    }
+
 
     @Test
     public void testIndexSetupFullRunKafka() throws IllegalAccessException {
@@ -58,9 +76,10 @@ public class CrawlIndexTest {
 
         FieldUtils.writeField(kafkaOutput, "producer", prod, true);
 
-        index.crawlAndSend(kafkaOutput, 50);
+        boolean res = index.crawlAndSend(kafkaOutput, 50);
 
         verify(kafkaOutput, atLeastOnce()).send(anyList());
+        assertTrue(res);
         f.delete();
     }
 }

@@ -16,5 +16,6 @@ public interface Output {
     default boolean send(MavenArtifact artifact) {
         return send(Arrays.asList(artifact));
     }
+
     boolean send(List<MavenArtifact> artifact);
 }

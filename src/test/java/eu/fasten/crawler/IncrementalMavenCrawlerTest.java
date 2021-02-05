@@ -147,4 +147,18 @@ public class IncrementalMavenCrawlerTest {
 
         new File("src/test/resources/" + (index + 1)  + ".index").delete();
     }
+
+    @Test
+    public void testFailedCrawl() {
+        int index = 680;
+        StdOutput stdOutput = spy(new StdOutput());
+
+        IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(index, 50, stdOutput, "src/test/resources/");
+
+        when(stdOutput.send(anyList())).thenReturn(false);
+        crawler.run();
+
+        verify(stdOutput, atLeastOnce()).send(anyList());
+        assertEquals(index, crawler.getIndex());
+    }
 }

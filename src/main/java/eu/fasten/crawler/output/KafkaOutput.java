@@ -70,7 +70,7 @@ public class KafkaOutput implements Output {
                 e.printStackTrace();
                 return false;
             }
-        }).reduce(true, (x, y) -> x && y);
+        }).noneMatch((x) -> x == false);
 
         return result;
     }
