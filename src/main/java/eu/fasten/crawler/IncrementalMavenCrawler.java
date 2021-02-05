@@ -85,15 +85,7 @@ public class IncrementalMavenCrawler implements Runnable {
             .build();
 
     public static void main(String[] args) {
-        options.addOption(optStartIndex);
-        options.addOption(optBatchSize);
-        options.addOption(optOutputType);
-        options.addOption(optCrawlInterval);
-        options.addOption(optCheckpointDir);
-        options.addOption(optKafkaTopic);
-        options.addOption(optKafkaBrokers);
-        options.addOption(optRestEndpoint);
-
+        addOptions();
         CommandLineParser parser = new DefaultParser();
 
         Properties properties;
@@ -122,6 +114,17 @@ public class IncrementalMavenCrawler implements Runnable {
         IncrementalMavenCrawler crawler = new IncrementalMavenCrawler(startIndex, batchSize, output, checkpointDir);
         ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
         service.scheduleAtFixedRate(crawler, 0, interval, TimeUnit.HOURS);
+    }
+
+    public static void addOptions() {
+        options.addOption(optStartIndex);
+        options.addOption(optBatchSize);
+        options.addOption(optOutputType);
+        options.addOption(optCrawlInterval);
+        options.addOption(optCheckpointDir);
+        options.addOption(optKafkaTopic);
+        options.addOption(optKafkaBrokers);
+        options.addOption(optRestEndpoint);
     }
 
     /**
