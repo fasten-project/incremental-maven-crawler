@@ -18,7 +18,7 @@ public class IncrementalMavenCrawler implements Runnable {
 
     // Arguments for incremental maven crawler.
     static Options options = new Options();
-    static Option optStartIndex = Option.builder("i")
+    static Option optStartIndex = Option.builder("si")
             .longOpt("start_index")
             .hasArg()
             .argName("index")

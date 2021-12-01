@@ -1,12 +1,13 @@
 package eu.fasten.crawler;
 
 import eu.fasten.crawler.output.StdOutput;
+import org.apache.commons.cli.Option;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import scala.Int;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyList;
@@ -145,7 +146,7 @@ public class IncrementalMavenCrawlerTest {
         verify(stdOutput, atLeastOnce()).send(anyList());
         assertEquals(index + 1, crawler.getIndex());
 
-        new File("src/test/resources/" + (index + 1)  + ".index").delete();
+        new File("src/test/resources/" + (index + 1) + ".index").delete();
     }
 
     @Test
@@ -160,5 +161,23 @@ public class IncrementalMavenCrawlerTest {
 
         verify(stdOutput, atLeastOnce()).send(anyList());
         assertEquals(index, crawler.getIndex());
+    }
+
+    /**
+     * This test aims to detect multiple options with same name.
+     * It compares number of Option static attribute declared in IncrementalMavenCrawler with
+     * number of elements in the list provided by Options.getOptions().
+     */
+    @Test
+    public void testAddOptions() {
+        // Count number of Option static attribute declared in IncrementalMavenCrawler
+        long numberOfOptionsDelcared = Arrays.stream(IncrementalMavenCrawler.class.getDeclaredFields()).filter(field -> field.getType() == Option.class).count();
+
+        IncrementalMavenCrawler.addOptions();
+
+        // Number of options registered in options attribute (Apache CLI Options class)
+        long actualNumberOfOptions = IncrementalMavenCrawler.options.getOptions().size();
+
+        assertEquals(numberOfOptionsDelcared, actualNumberOfOptions);
     }
 }
