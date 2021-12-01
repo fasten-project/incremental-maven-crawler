@@ -14,6 +14,7 @@ usage: IncrementalMavenCrawler
                                   hours). Defaults to 1 hour.
  -o,--output <[std|kafka|rest]>   Output to send the crawled artifacts to.
                                   Defaults to std.
+ -si,start_index                  Index to start crawling from (inclusive). Required.
  -bs,--batch_size <amount>        Size of batches to send to output.
                                   Defaults to 50.
  -cd,--checkpoint_dir <hours>     Directory to checkpoint/store latest
