@@ -1,4 +1,7 @@
 [![BCH compliance](https://bettercodehub.com/edge/badge/fasten-project/incremental-maven-crawler?branch=main)](https://bettercodehub.com/) ![Java CI with Maven](https://github.com/fasten-project/incremental-maven-crawler/workflows/Java%20CI%20with%20Maven/badge.svg)
+
+⚠ This project has been supersed by [Maven crawler plugin](https://github.com/fasten-project/data-processing/tree/main/plugins/maven-crawler) that is part of [data-processins](https://github.com/fasten-project/data-processing/) project.
+
 # Incremental Maven Crawler
 This application crawls from [Maven Central Incremental Index Repository](https://repo1.maven.org/maven2/.index/) with a certain interval. 
 Running this application will follow this repository and outputs the __unique artifacts__ released on Maven central.
